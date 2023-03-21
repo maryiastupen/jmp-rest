@@ -4,12 +4,15 @@ import java.util.List;
 
 import com.epam.learn.dto.UserRequestDto;
 import com.epam.learn.dto.UserResponseDto;
-import com.epam.learn.user.UserDtoConverterService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import com.epam.learn.exception.NotFoundException;
+import com.epam.learn.user.UserDtoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,63 +29,78 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST API controller to manage Users
  */
-@Api(tags = "users", value = "users")
+@Tag(name = "users", description = "Users management APIs")
 @RestController("usersRestController")
 @RequestMapping(path = UserController.USERS_BASE_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 public class UserController {
 
     public static final String USERS_BASE_URL = "/v1/users";
 
-    private final UserDtoConverterService userService;
+    private final UserDtoService userService;
 
     @Autowired
-    public UserController(UserDtoConverterService userService) {this.userService = userService;}
+    public UserController(UserDtoService userService) {this.userService = userService;}
 
-    @ApiOperation(value = "Create user")
+    @Operation(summary = "Create user", description = "Returns created user's details", tags = {"users", "post"})
     @ApiResponses({
-            @ApiResponse(code = 201, message = "User has been successfully saved", response = String.class),
-            @ApiResponse(code = 400, message = "Invalid request parameters"),
+            @ApiResponse(responseCode = "201", content = {@Content(schema = @Schema(implementation = UserResponseDto.class), mediaType = "application/json")}, description = "User has been successfully saved")
     })
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserResponseDto> createUser(@RequestBody UserRequestDto userRequestDto) {
-        UserResponseDto createdUser = userService.saveOrUpdateUser(userRequestDto);
+        UserResponseDto createdUser = userService.saveUser(userRequestDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
 
     }
 
-    @ApiOperation(value = "Update user")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "User has been successfully updated", response = String.class),
-            @ApiResponse(code = 400, message = "Invalid request parameters"),
+    @Operation(summary = "Update user", description = "Returns updated user's details", tags = {"users", "update"})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = UserResponseDto.class), mediaType = "application/json")}, description = "User has been successfully updated"),
+            @ApiResponse(responseCode = "404", content = {@Content(schema = @Schema())}, description = "User is not found")
     })
     @PutMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserResponseDto> updateUser(@ApiParam(value = "User") @RequestBody UserRequestDto userRequestDto) {
-        UserResponseDto updatedUser = userService.saveOrUpdateUser(userRequestDto);
-        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    public ResponseEntity<UserResponseDto> updateUser(@RequestBody UserRequestDto userRequestDto) {
+        try {
+            UserResponseDto updatedUser = userService.updateUser(userRequestDto);
+            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @ApiOperation(value = "Delete user by id")
+    @Operation(summary = "Delete user by id", description = "Deletes user by passed id", tags = {"users", "delete"})
     @ApiResponses({
-            @ApiResponse(code = 200, message = "User has been successfully deleted"),
-            @ApiResponse(code = 404, message = "User is not found")
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema())}, description = "User has been successfully deleted"),
+            @ApiResponse(responseCode = "404", content = {@Content(schema = @Schema())}, description = "User is not found")
     })
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public void deleteUser(@PathVariable("id") Long id) {
-        userService.deleteUser(id);
+    public ResponseEntity<String> deleteUser(@PathVariable("id") Long id) {
+        try {
+            userService.deleteUser(id);
+            return new ResponseEntity<>("User has been successfully deleted", HttpStatus.OK);
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @ApiOperation(value = "Get user by id")
+    @Operation(summary = "Get user by id", description = "Returns user fetched by id", tags = {"users", "get"})
     @ApiResponses({
-            @ApiResponse(code = 200, message = "User details", response = UserResponseDto.class),
-            @ApiResponse(code = 404, message = "User is not found")
+            @ApiResponse(responseCode = "200", content = {@Content(schema = @Schema(implementation = UserResponseDto.class), mediaType = "application/json")}, description = "User has been successfully fetched"),
+            @ApiResponse(responseCode = "404", content = {@Content(schema = @Schema())}, description = "User is not found")
     })
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserResponseDto> getUser(@PathVariable("id") Long id) {
-        UserResponseDto userResponseDto = userService.getUser(id);
-        return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
+        try {
+            UserResponseDto userResponseDto = userService.getUser(id);
+            return new ResponseEntity<>(userResponseDto, HttpStatus.OK);
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @ApiOperation(value = "Get all users")
+    @Operation(summary = "Get all users", description = "Returns list of all users", tags = {"users", "get"})
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponseDto.class)))}, description = "Users have been successfully fetched"),
+    })
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUser() {
         List<UserResponseDto> users = userService.getAllUser();

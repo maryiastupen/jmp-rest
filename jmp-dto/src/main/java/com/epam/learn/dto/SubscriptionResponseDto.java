@@ -4,6 +4,9 @@ import java.time.LocalDate;
 
 import com.epam.learn.entity.User;
 
+/**
+ * Represents Subscription Response DTO
+ */
 public class SubscriptionResponseDto {
 
     private Long id;
@@ -17,6 +20,18 @@ public class SubscriptionResponseDto {
         this.id = id;
         this.user = user;
         this.startDate = startDate;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
     public SubscriptionResponseDto.SubscriptionResponseDtoBuilder newBuilder() {

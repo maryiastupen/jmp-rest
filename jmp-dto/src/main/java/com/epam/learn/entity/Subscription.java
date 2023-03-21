@@ -1,6 +1,7 @@
 package com.epam.learn.entity;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,6 +13,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Entity that represents specific subscription
+ */
 @Entity
 @Table(name = "subscription")
 public class Subscription {
@@ -21,15 +25,18 @@ public class Subscription {
     @Column(nullable = false)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "id")
     private User user;
 
     @Column(name = "start_date")
     private LocalDate startDate;
 
-    public Subscription() {
+    public Subscription() {}
 
+    public Subscription(User user, LocalDate startDate) {
+        this.user = user;
+        this.startDate = startDate;
     }
 
     public User getUser() {
@@ -48,17 +55,37 @@ public class Subscription {
         this.startDate = startDate;
     }
 
-    public Subscription(User user, LocalDate startDate) {
-        this.user = user;
-        this.startDate = startDate;
-    }
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Subscription that = (Subscription) o;
+        return Objects.equals(user, that.user) && Objects.equals(startDate, that.startDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(user, startDate);
+    }
+
+    @Override
+    public String toString() {
+        return "Subscription{" +
+                "user=" + user +
+                ", startDate=" + startDate +
+                '}';
     }
 
 }

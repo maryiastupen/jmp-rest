@@ -2,6 +2,9 @@ package com.epam.learn.dto;
 
 import java.time.LocalDate;
 
+/**
+ * Represents User Request DTO
+ */
 public class UserRequestDto {
 
     private Long id;
@@ -12,11 +15,7 @@ public class UserRequestDto {
 
     private LocalDate birthday;
 
-    UserRequestDto(Long id, String name, String surname, LocalDate birthday) {
-        this.id = id;
-        this.name = name;
-        this.surname = surname;
-        this.birthday = birthday;
+    public UserRequestDto() {
     }
 
     public Long getId() {

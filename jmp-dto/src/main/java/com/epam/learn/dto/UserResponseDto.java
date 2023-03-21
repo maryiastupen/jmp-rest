@@ -2,6 +2,9 @@ package com.epam.learn.dto;
 
 import java.time.LocalDate;
 
+/**
+ * Represents User Response DTO
+ */
 public class UserResponseDto {
 
     private Long id;
@@ -17,6 +20,22 @@ public class UserResponseDto {
 
     public UserResponseDtoBuilder newBuilder() {
         return new UserResponseDtoBuilder();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public LocalDate getBirthday() {
+        return birthday;
     }
 
     public UserResponseDto(Long id, String name, String surname, LocalDate birthday) {
